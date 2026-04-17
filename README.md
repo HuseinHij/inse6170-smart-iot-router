@@ -1,58 +1,39 @@
 # Linux-Based Smart IoT Router
 
-A proposal-aligned proof-of-concept Linux hotspot/router for small IoT environments.
+A proposal-aligned proof-of-concept Linux-based smart IoT router for small home or lab IoT environments.
 
-## What this project does
+## Project overview
 
 This project turns a Linux machine into a smart IoT control point that can:
 
-- run as a wireless hotspot/router
-- discover connected devices and keep an inventory
-- identify vendors by MAC/OUI lookup
-- capture traffic into PCAP files
+- act as a hotspot/router for IoT devices
+- discover connected devices and maintain an inventory
+- identify device vendors using MAC/OUI lookup
+- capture network traffic into PCAP files
 - enforce whitelist-based firewall rules
-- detect suspicious or excessive traffic
-- temporarily throttle devices with `tc`
+- detect suspicious or excessive behavior
+- temporarily throttle traffic when needed
 - store logs, alerts, and state in SQLite
-- expose a local web dashboard for administration
+- provide a local web dashboard for administration
 
-## Folder structure
+## Main components
+
+- **Linux networking layer** for hotspot and routing
+- **Python backend** for orchestration and system logic
+- **SQLite database** for devices, alerts, captures, and rules
+- **Local web dashboard** for monitoring and administration
+- **Packet capture module** using tcpdump/Scapy
+- **Whitelist firewall module** using nftables
+- **Monitoring and throttling module** using tc
+- **MAC/OUI vendor lookup** for device identification
+
+## Current project structure
 
 ```text
-config/      runtime configuration, hostapd, nftables
-data/        SQLite database and local OUI data
-captures/    generated PCAP files
-logs/        application logs
-docs/        setup notes and design docs
-scripts/     Linux helper scripts
-src/         Python backend
-ui/          templates and static files
-tests/       small unit tests
-```
-
-## Quick start
-
-1. Create a virtual environment and install Python dependencies.
-2. Configure `config/app.yaml`.
-3. Run `scripts/check_env.sh`.
-4. Configure Linux hotspot/NAT with the scripts in `scripts/`.
-5. Start the app with:
-
-```bash
-python -m src.main
-```
-
-6. Open the dashboard at `http://<router-ip>:8080`.
-
-## Important notes
-
-- Run on a Linux machine.
-- Packet capture, firewall changes, AP mode, and traffic shaping require elevated privileges.
-- Use a dedicated test machine or VM host with compatible Wi-Fi hardware.
-- Prefer two interfaces:
-  - upstream internet interface, for example `eth0`
-  - AP interface, for example `wlan0`
-
-## Suggested commit plan
-
-See `docs/IMPLEMENTATION_GUIDE.md`.
+config/      project configuration files
+data/        local OUI data and database storage
+captures/    packet capture output
+logs/        runtime logs
+docs/        project documentation
+src/         Python backend source code
+ui/          dashboard templates and static assets

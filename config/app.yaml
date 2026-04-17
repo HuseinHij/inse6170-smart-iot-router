@@ -10,16 +10,17 @@ paths:
   oui_file: data/oui_sample.csv
 
 network:
-  upstream_interface: eth0
-  ap_interface: wlan0
+  # Update these to match the real Linux machine used for testing/demo.
+  upstream_interface: enp0s3
+  ap_interface: enp0s3
   ap_gateway_ip: 192.168.50.1
   ap_cidr: 192.168.50.0/24
-  capture_interface: wlan0
+  capture_interface: enp0s3
 
 capture:
   enabled: true
   rotate_seconds: 300
-  tcpdump_bin: /usr/sbin/tcpdump
+  tcpdump_bin: /usr/bin/tcpdump
 
 monitoring:
   enabled: true
