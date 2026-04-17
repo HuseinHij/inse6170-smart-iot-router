@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block content %}
+<section class="card">
+  <h2>Whitelist rules</h2>
+  <table>
+    <tr>
+      <th>ID</th>
+      <th>Device MAC</th>
+      <th>Destination</th>
+      <th>Port</th>
+      <th>Protocol</th>
+      <th>Enabled</th>
+    </tr>
+    {% for rule in rules %}
+    <tr>
+      <td>{{ rule.id }}</td>
+      <td>{{ rule.device_mac }}</td>
+      <td>{{ rule.allowed_dest }}</td>
+      <td>{{ rule.allowed_port }}</td>
+      <td>{{ rule.protocol }}</td>
+      <td>{{ rule.enabled }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</section>
+{% endblock %}

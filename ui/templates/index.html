@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="grid">
+  <section class="card">
+    <h2>Overview</h2>
+    <ul>
+      <li>Known devices: {{ device_count }}</li>
+      <li>Alerts: {{ alert_count }}</li>
+      <li>Captures: {{ capture_count }}</li>
+      <li>Rules: {{ rule_count }}</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Latest alerts</h2>
+    <table>
+      <tr><th>Time</th><th>Severity</th><th>Message</th></tr>
+      {% for alert in alerts %}
+      <tr><td>{{ alert.created_at }}</td><td>{{ alert.severity }}</td><td>{{ alert.message }}</td></tr>
+      {% endfor %}
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>Recent devices</h2>
+    <table>
+      <tr><th>MAC</th><th>IP</th><th>Vendor</th><th>Last seen</th></tr>
+      {% for device in devices %}
+      <tr><td>{{ device.mac_address }}</td><td>{{ device.ip_address }}</td><td>{{ device.vendor }}</td><td>{{ device.last_seen }}</td></tr>
+      {% endfor %}
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>Recent captures</h2>
+    <table>
+      <tr><th>PCAP</th><th>Start</th><th>End</th></tr>
+      {% for capture in captures %}
+      <tr><td>{{ capture.pcap_path }}</td><td>{{ capture.start_time }}</td><td>{{ capture.end_time }}</td></tr>
+      {% endfor %}
+    </table>
+  </section>
+</div>
+{% endblock %}

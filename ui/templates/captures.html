@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% block content %}
+<section class="card">
+  <h2>Packet captures</h2>
+  <table>
+    <tr>
+      <th>ID</th>
+      <th>PCAP file</th>
+      <th>Start</th>
+      <th>End</th>
+      <th>Packets</th>
+    </tr>
+    {% for capture in captures %}
+    <tr>
+      <td>{{ capture.id }}</td>
+      <td>{{ capture.pcap_path }}</td>
+      <td>{{ capture.start_time }}</td>
+      <td>{{ capture.end_time }}</td>
+      <td>{{ capture.packet_count }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</section>
+{% endblock %}
