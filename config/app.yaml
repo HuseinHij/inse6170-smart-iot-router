@@ -1,0 +1,34 @@
+app:
+  host: 0.0.0.0
+  port: 8080
+  debug: true
+
+paths:
+  db_path: data/router.db
+  captures_dir: captures
+  logs_dir: logs
+  oui_file: data/oui_sample.csv
+
+network:
+  upstream_interface: eth0
+  ap_interface: wlan0
+  ap_gateway_ip: 192.168.50.1
+  ap_cidr: 192.168.50.0/24
+  capture_interface: wlan0
+
+capture:
+  enabled: true
+  rotate_seconds: 300
+  tcpdump_bin: /usr/sbin/tcpdump
+
+monitoring:
+  enabled: true
+  discovery_interval_seconds: 30
+  monitoring_interval_seconds: 20
+  bytes_per_second_threshold: 500000
+  packets_per_second_threshold: 1000
+  throttle_rate: 1mbit
+  throttle_duration_seconds: 120
+
+ui:
+  title: Smart IoT Router Dashboard
