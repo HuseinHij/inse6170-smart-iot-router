@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import atexit
+import os
 from pathlib import Path
 
+from .capture import PacketCaptureManager
 from .config import load_config
 from .db import get_connection, init_db
 from .discovery import sync_inventory
@@ -28,14 +31,31 @@ def main() -> None:
     def run_discovery() -> None:
         sync_inventory(conn, config["network"]["ap_interface"], oui_lookup)
 
-    discovery_task = RepeatingTask(
-        interval_seconds=config["monitoring"]["discovery_interval_seconds"],
-        target=run_discovery,
-        name="device-discovery",
-    )
-    discovery_task.start()
-
     app = create_app(conn, config)
+
+    should_start_background = (
+        not config["app"]["debug"] or os.environ.get("WERKZEUG_RUN_MAIN") == "true"
+    )
+
+    if should_start_background:
+        discovery_task = RepeatingTask(
+            interval_seconds=config["monitoring"]["discovery_interval_seconds"],
+            target=run_discovery,
+            name="device-discovery",
+        )
+        discovery_task.start()
+
+        capture_manager = PacketCaptureManager(
+            conn=conn,
+            captures_dir=config["paths"]["captures_dir"],
+            tcpdump_bin=config["capture"]["tcpdump_bin"],
+        )
+
+        if config["capture"]["enabled"]:
+            capture_manager.start(config["network"]["capture_interface"])
+
+        atexit.register(capture_manager.stop)
+
     app.run(
         host=config["app"]["host"],
         port=config["app"]["port"],
