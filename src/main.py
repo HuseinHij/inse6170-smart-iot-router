@@ -4,6 +4,7 @@ import atexit
 import os
 from pathlib import Path
 
+from .monitor import TrafficMonitor
 from .capture import PacketCaptureManager
 from .config import load_config
 from .db import get_connection, init_db
@@ -55,6 +56,24 @@ def main() -> None:
             capture_manager.start(config["network"]["capture_interface"])
 
         atexit.register(capture_manager.stop)
+
+        monitor = TrafficMonitor(
+            conn=conn,
+            interface=config["network"]["capture_interface"],
+            bytes_threshold=config["monitoring"]["bytes_per_second_threshold"],
+            packets_threshold=config["monitoring"]["packets_per_second_threshold"],
+            throttle_rate=config["monitoring"]["throttle_rate"],
+            throttle_duration_seconds=config["monitoring"]["throttle_duration_seconds"],
+        )
+
+        monitor_task = RepeatingTask(
+            interval_seconds=config["monitoring"]["monitoring_interval_seconds"],
+            target=monitor.evaluate,
+            name="traffic-monitor",
+        )
+
+        if config["monitoring"]["enabled"]:
+            monitor_task.start()
 
     app.run(
         host=config["app"]["host"],
