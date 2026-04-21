@@ -1,24 +1,49 @@
 {% extends "layout.html" %}
 {% block content %}
-<section class="card">
-  <h2>Alerts</h2>
-  <table>
-    <tr>
-      <th>Time</th>
-      <th>Device</th>
-      <th>Type</th>
-      <th>Severity</th>
-      <th>Message</th>
-    </tr>
-    {% for alert in alerts %}
-    <tr>
-      <td>{{ alert.created_at }}</td>
-      <td>{{ alert.device_mac }}</td>
-      <td>{{ alert.alert_type }}</td>
-      <td>{{ alert.severity }}</td>
-      <td>{{ alert.message }}</td>
-    </tr>
-    {% endfor %}
-  </table>
-</section>
+<div class="page-header">
+  <h1>Alerts</h1>
+  <span class="page-sub">IPS anomaly detections and threshold violations</span>
+</div>
+<div class="card">
+  <div class="card-header"><h2>All Alerts</h2></div>
+  <div class="table-wrap">
+    {% if alerts %}
+    <table>
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Device MAC</th>
+          <th>Type</th>
+          <th>Severity</th>
+          <th>Message</th>
+          <th>Resolved</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for a in alerts %}
+      <tr>
+        <td class="mono">{{ a.created_at[:19] }}</td>
+        <td class="mono">{{ a.device_mac or '—' }}</td>
+        <td>{{ a.alert_type }}</td>
+        <td><span class="tag tag-{{ a.severity }}">{{ a.severity }}</span></td>
+        <td title="{{ a.message }}">{{ a.message }}</td>
+        <td>
+          {% if a.resolved %}
+          <span class="tag tag-enabled">yes</span>
+          {% else %}
+          <span class="tag tag-high">no</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">✓</div>
+      No alerts recorded. System is within normal parameters.
+    </div>
+    {% endif %}
+  </div>
+</div>
 {% endblock %}

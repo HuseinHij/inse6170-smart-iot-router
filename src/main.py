@@ -2,13 +2,15 @@ from __future__ import annotations
 
 import atexit
 import os
+from datetime import datetime
 from pathlib import Path
 
 from .monitor import TrafficMonitor
 from .capture import PacketCaptureManager
 from .config import load_config
-from .db import get_connection, init_db
+from .db import get_connection, init_db, add_system_log
 from .discovery import sync_inventory
+from .firewall import apply_base_policy, rebuild_whitelist
 from .oui_lookup import OUILookup
 from .scheduler import RepeatingTask
 from .webapp import create_app
@@ -27,10 +29,21 @@ def main() -> None:
     conn = get_connection(config["paths"]["db_path"])
     init_db(conn)
 
+    add_system_log(conn, "INFO", "System starting up")
+
     oui_lookup = OUILookup(config["paths"]["oui_file"])
+
+    # Apply firewall base policy and rebuild whitelist rules from DB on startup
+    try:
+        apply_base_policy()
+        rebuild_whitelist(conn)
+        add_system_log(conn, "INFO", "Firewall whitelist applied successfully")
+    except Exception as exc:
+        add_system_log(conn, "WARNING", f"Firewall setup skipped (may need root): {exc}")
 
     def run_discovery() -> None:
         sync_inventory(conn, config["network"]["ap_interface"], oui_lookup)
+        add_system_log(conn, "INFO", f"Device discovery completed on {config['network']['ap_interface']}")
 
     app = create_app(conn, config)
 
@@ -56,6 +69,7 @@ def main() -> None:
             capture_manager.start(config["network"]["capture_interface"])
 
         atexit.register(capture_manager.stop)
+        atexit.register(lambda: add_system_log(conn, "INFO", "System shutting down"))
 
         monitor = TrafficMonitor(
             conn=conn,
@@ -75,6 +89,7 @@ def main() -> None:
         if config["monitoring"]["enabled"]:
             monitor_task.start()
 
+    add_system_log(conn, "INFO", f"Web dashboard starting on {config['app']['host']}:{config['app']['port']}")
     app.run(
         host=config["app"]["host"],
         port=config["app"]["port"],

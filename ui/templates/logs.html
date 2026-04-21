@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="page-header">
+  <h1>System Logs</h1>
+  <span class="page-sub">Runtime events and startup messages</span>
+</div>
+<div class="card">
+  <div class="card-header"><h2>System Logs</h2></div>
+  <div class="table-wrap">
+    {% if logs %}
+    <table>
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Level</th>
+          <th>Message</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for log in logs %}
+      <tr>
+        <td class="mono">{{ log.created_at[:19] }}</td>
+        <td>
+          {% if log.level == 'ERROR' %}
+          <span class="tag tag-error">ERROR</span>
+          {% elif log.level == 'WARNING' %}
+          <span class="tag tag-warn">WARN</span>
+          {% else %}
+          <span class="tag tag-info">INFO</span>
+          {% endif %}
+        </td>
+        <td>{{ log.message }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">≡</div>
+      No system logs yet.
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

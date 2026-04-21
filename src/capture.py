@@ -34,10 +34,8 @@ class PacketCaptureManager:
 
         cmd = [
             self.tcpdump_bin,
-            "-i",
-            interface,
-            "-w",
-            str(pcap_path),
+            "-i", interface,
+            "-w", str(pcap_path),
         ]
         process = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         capture_id = add_capture(
@@ -55,14 +53,36 @@ class PacketCaptureManager:
         self.current = session
         return session
 
+    @staticmethod
+    def _count_packets(pcap_path: str, tcpdump_bin: str) -> int:
+        """Count packets in a PCAP file by reading it back with tcpdump."""
+        try:
+            result = subprocess.run(
+                [tcpdump_bin, "-r", pcap_path, "-nn", "--count"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            # tcpdump --count outputs "<N> packets" to stderr
+            for line in (result.stderr + result.stdout).splitlines():
+                parts = line.strip().split()
+                if parts and parts[0].isdigit():
+                    return int(parts[0])
+        except Exception:
+            pass
+        return 0
+
     def stop(self) -> None:
         if not self.current:
             return
         session = self.current
         if session.process.poll() is None:
             session.process.send_signal(signal.SIGINT)
-            session.process.wait(timeout=10)
+            try:
+                session.process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                session.process.kill()
         end_time = datetime.utcnow().isoformat()
-        packet_count = 0
+        packet_count = self._count_packets(session.pcap_path, self.tcpdump_bin)
         update_capture_end(self.conn, session.capture_id, end_time=end_time, packet_count=packet_count)
         self.current = None

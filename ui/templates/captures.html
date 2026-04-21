@@ -1,24 +1,43 @@
 {% extends "layout.html" %}
 {% block content %}
-<section class="card">
-  <h2>Packet captures</h2>
-  <table>
-    <tr>
-      <th>ID</th>
-      <th>PCAP file</th>
-      <th>Start</th>
-      <th>End</th>
-      <th>Packets</th>
-    </tr>
-    {% for capture in captures %}
-    <tr>
-      <td>{{ capture.id }}</td>
-      <td>{{ capture.pcap_path }}</td>
-      <td>{{ capture.start_time }}</td>
-      <td>{{ capture.end_time }}</td>
-      <td>{{ capture.packet_count }}</td>
-    </tr>
-    {% endfor %}
-  </table>
-</section>
+<div class="page-header">
+  <h1>Packet Captures</h1>
+  <span class="page-sub">PCAP files recorded by tcpdump</span>
+</div>
+<div class="card">
+  <div class="card-header"><h2>Capture Sessions</h2></div>
+  <div class="table-wrap">
+    {% if captures %}
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>PCAP File</th>
+          <th>Device MAC</th>
+          <th>Start Time</th>
+          <th>End Time</th>
+          <th>Packets</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for c in captures %}
+      <tr>
+        <td class="mono">{{ c.id }}</td>
+        <td class="mono" title="{{ c.pcap_path }}">{{ c.pcap_path.split('/')[-1] }}</td>
+        <td class="mono">{{ c.device_mac or 'all' }}</td>
+        <td class="mono">{{ c.start_time[:19] }}</td>
+        <td class="mono">{{ c.end_time[:19] if c.end_time else '—' }}</td>
+        <td>{{ c.packet_count }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">⏺</div>
+      No captures recorded. Enable capture in app.yaml and restart.
+    </div>
+    {% endif %}
+  </div>
+</div>
 {% endblock %}

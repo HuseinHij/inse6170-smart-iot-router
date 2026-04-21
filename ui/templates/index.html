@@ -1,44 +1,137 @@
 {% extends "layout.html" %}
 {% block content %}
-<div class="grid">
-  <section class="card">
-    <h2>Overview</h2>
-    <ul>
-      <li>Known devices: {{ device_count }}</li>
-      <li>Alerts: {{ alert_count }}</li>
-      <li>Captures: {{ capture_count }}</li>
-      <li>Rules: {{ rule_count }}</li>
-    </ul>
-  </section>
 
-  <section class="card">
-    <h2>Latest alerts</h2>
-    <table>
-      <tr><th>Time</th><th>Severity</th><th>Message</th></tr>
-      {% for alert in alerts %}
-      <tr><td>{{ alert.created_at }}</td><td>{{ alert.severity }}</td><td>{{ alert.message }}</td></tr>
-      {% endfor %}
-    </table>
-  </section>
+<div class="page-header">
+  <h1>Dashboard</h1>
+  <span class="page-sub">System overview · real-time</span>
+</div>
 
-  <section class="card">
-    <h2>Recent devices</h2>
-    <table>
-      <tr><th>MAC</th><th>IP</th><th>Vendor</th><th>Last seen</th></tr>
-      {% for device in devices %}
-      <tr><td>{{ device.mac_address }}</td><td>{{ device.ip_address }}</td><td>{{ device.vendor }}</td><td>{{ device.last_seen }}</td></tr>
-      {% endfor %}
-    </table>
-  </section>
+<div class="stats-row">
+  <div class="stat-card s-cyan">
+    <div class="stat-label">Devices</div>
+    <div class="stat-value c-cyan">{{ device_count }}</div>
+  </div>
+  <div class="stat-card s-danger">
+    <div class="stat-label">Alerts</div>
+    <div class="stat-value c-danger">{{ alert_count }}</div>
+  </div>
+  <div class="stat-card s-green">
+    <div class="stat-label">Captures</div>
+    <div class="stat-value c-green">{{ capture_count }}</div>
+  </div>
+  <div class="stat-card s-warn">
+    <div class="stat-label">Whitelist Rules</div>
+    <div class="stat-value c-warn">{{ rule_count }}</div>
+  </div>
+  <div class="stat-card s-cyan">
+    <div class="stat-label">Throttle Events</div>
+    <div class="stat-value c-cyan">{{ rate_event_count }}</div>
+  </div>
+</div>
 
-  <section class="card">
-    <h2>Recent captures</h2>
-    <table>
-      <tr><th>PCAP</th><th>Start</th><th>End</th></tr>
-      {% for capture in captures %}
-      <tr><td>{{ capture.pcap_path }}</td><td>{{ capture.start_time }}</td><td>{{ capture.end_time }}</td></tr>
-      {% endfor %}
-    </table>
-  </section>
+<div class="grid-2">
+
+  <div class="card">
+    <div class="card-header">
+      <h2>Latest Alerts</h2>
+      <a href="/alerts">view all →</a>
+    </div>
+    <div class="table-wrap">
+      {% if alerts %}
+      <table>
+        <thead><tr><th>Time</th><th>Severity</th><th>Message</th></tr></thead>
+        <tbody>
+        {% for a in alerts %}
+        <tr>
+          <td class="mono">{{ a.created_at[:19] }}</td>
+          <td><span class="tag tag-{{ a.severity }}">{{ a.severity }}</span></td>
+          <td title="{{ a.message }}">{{ a.message }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state"><div class="empty-icon">✓</div>No alerts recorded</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2>Recent Devices</h2>
+      <a href="/devices">view all →</a>
+    </div>
+    <div class="table-wrap">
+      {% if devices %}
+      <table>
+        <thead><tr><th>MAC</th><th>IP</th><th>Vendor</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for d in devices %}
+        <tr>
+          <td class="mono">{{ d.mac_address }}</td>
+          <td class="mono">{{ d.ip_address or '—' }}</td>
+          <td>{{ d.vendor or 'Unknown' }}</td>
+          <td><span class="tag tag-{{ d.status }}">{{ d.status }}</span></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state"><div class="empty-icon">◈</div>No devices discovered yet</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2>Recent Captures</h2>
+      <a href="/captures">view all →</a>
+    </div>
+    <div class="table-wrap">
+      {% if captures %}
+      <table>
+        <thead><tr><th>File</th><th>Start</th><th>Packets</th></tr></thead>
+        <tbody>
+        {% for c in captures %}
+        <tr>
+          <td class="mono" title="{{ c.pcap_path }}">{{ c.pcap_path.split('/')[-1] }}</td>
+          <td class="mono">{{ c.start_time[:19] }}</td>
+          <td>{{ c.packet_count }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state"><div class="empty-icon">⏺</div>No captures recorded</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2>Rate / Throttle Events</h2>
+      <a href="/rate-events">view all →</a>
+    </div>
+    <div class="table-wrap">
+      {% if rate_events %}
+      <table>
+        <thead><tr><th>Device</th><th>B/s</th><th>Pkt/s</th><th>Action</th></tr></thead>
+        <tbody>
+        {% for r in rate_events %}
+        <tr>
+          <td class="mono">{{ r.device_mac or '—' }}</td>
+          <td>{{ r.bytes_per_sec }}</td>
+          <td>{{ r.packets_per_sec }}</td>
+          <td>{{ r.action_taken }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state"><div class="empty-icon">⚡</div>No throttle events yet</div>
+      {% endif %}
+    </div>
+  </div>
+
 </div>
 {% endblock %}

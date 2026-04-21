@@ -1,26 +1,49 @@
 {% extends "layout.html" %}
 {% block content %}
-<section class="card">
-  <h2>Whitelist rules</h2>
-  <table>
-    <tr>
-      <th>ID</th>
-      <th>Device MAC</th>
-      <th>Destination</th>
-      <th>Port</th>
-      <th>Protocol</th>
-      <th>Enabled</th>
-    </tr>
-    {% for rule in rules %}
-    <tr>
-      <td>{{ rule.id }}</td>
-      <td>{{ rule.device_mac }}</td>
-      <td>{{ rule.allowed_dest }}</td>
-      <td>{{ rule.allowed_port }}</td>
-      <td>{{ rule.protocol }}</td>
-      <td>{{ rule.enabled }}</td>
-    </tr>
-    {% endfor %}
-  </table>
-</section>
+<div class="page-header">
+  <h1>Whitelist Rules</h1>
+  <span class="page-sub">nftables-enforced per-device access control</span>
+</div>
+<div class="card">
+  <div class="card-header"><h2>Active Rules</h2></div>
+  <div class="table-wrap">
+    {% if rules %}
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Device MAC</th>
+          <th>Allowed Destination</th>
+          <th>Port</th>
+          <th>Protocol</th>
+          <th>Enabled</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for r in rules %}
+      <tr>
+        <td class="mono">{{ r.id }}</td>
+        <td class="mono">{{ r.device_mac or 'any' }}</td>
+        <td class="mono">{{ r.allowed_dest or 'any' }}</td>
+        <td>{{ r.allowed_port or '—' }}</td>
+        <td>{{ r.protocol or '—' }}</td>
+        <td>
+          {% if r.enabled %}
+          <span class="tag tag-enabled">enabled</span>
+          {% else %}
+          <span class="tag tag-offline">disabled</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">⛊</div>
+      No whitelist rules defined. All forward traffic is currently accepted.
+    </div>
+    {% endif %}
+  </div>
+</div>
 {% endblock %}

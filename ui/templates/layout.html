@@ -2,25 +2,60 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ title }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <header class="header">
-    <div>
-      <h1>{{ title }}</h1>
-      <p>Linux-based smart IoT router admin panel</p>
-    </div>
-    <nav class="nav">
-      <a href="/">Dashboard</a>
-      <a href="/devices">Devices</a>
-      <a href="/rules">Rules</a>
-      <a href="/alerts">Alerts</a>
-      <a href="/captures">Captures</a>
-    </nav>
-  </header>
+
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="logo-mark"><span>IoT Router</span></div>
+    <div class="logo-sub">INSE 6170 · Admin Panel</div>
+  </div>
+  <div class="sidebar-status">
+    <div class="status-dot"></div>
+    <span>System online</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Monitor</div>
+    <a href="/" class="{{ 'active' if request.path == '/' else '' }}">
+      <span class="nav-icon">⊞</span><span>Dashboard</span>
+    </a>
+    <a href="/devices" class="{{ 'active' if request.path == '/devices' else '' }}">
+      <span class="nav-icon">◈</span><span>Devices</span>
+    </a>
+    <a href="/alerts" class="{{ 'active' if request.path == '/alerts' else '' }}">
+      <span class="nav-icon">⚠</span><span>Alerts</span>
+    </a>
+    <div class="nav-section">Traffic</div>
+    <a href="/captures" class="{{ 'active' if request.path == '/captures' else '' }}">
+      <span class="nav-icon">⏺</span><span>Captures</span>
+    </a>
+    <a href="/rate-events" class="{{ 'active' if request.path == '/rate-events' else '' }}">
+      <span class="nav-icon">⚡</span><span>Rate Events</span>
+    </a>
+    <div class="nav-section">Security</div>
+    <a href="/rules" class="{{ 'active' if request.path == '/rules' else '' }}">
+      <span class="nav-icon">⛊</span><span>Whitelist Rules</span>
+    </a>
+    <div class="nav-section">System</div>
+    <a href="/logs" class="{{ 'active' if request.path == '/logs' else '' }}">
+      <span class="nav-icon">≡</span><span>System Logs</span>
+    </a>
+  </nav>
+  <div class="sidebar-footer">INSE 6170 · Hussein Hijazi</div>
+</aside>
+
+<div class="main-wrap">
+  <div class="topbar">
+    <div class="topbar-title">{{ title }}</div>
+    <span class="topbar-badge badge-ok">● ACTIVE</span>
+  </div>
   <main class="container">
     {% block content %}{% endblock %}
   </main>
+</div>
+
 </body>
 </html>

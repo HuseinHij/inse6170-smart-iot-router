@@ -1,28 +1,45 @@
 {% extends "layout.html" %}
 {% block content %}
-<section class="card">
-  <h2>Connected devices inventory</h2>
-  <table>
-    <tr>
-      <th>MAC</th>
-      <th>IP</th>
-      <th>Hostname</th>
-      <th>Vendor</th>
-      <th>First seen</th>
-      <th>Last seen</th>
-      <th>Status</th>
-    </tr>
-    {% for device in devices %}
-    <tr>
-      <td>{{ device.mac_address }}</td>
-      <td>{{ device.ip_address }}</td>
-      <td>{{ device.hostname }}</td>
-      <td>{{ device.vendor }}</td>
-      <td>{{ device.first_seen }}</td>
-      <td>{{ device.last_seen }}</td>
-      <td>{{ device.status }}</td>
-    </tr>
-    {% endfor %}
-  </table>
-</section>
+<div class="page-header">
+  <h1>Device Inventory</h1>
+  <span class="page-sub">All discovered IoT devices</span>
+</div>
+<div class="card">
+  <div class="card-header"><h2>Connected Devices</h2></div>
+  <div class="table-wrap">
+    {% if devices %}
+    <table>
+      <thead>
+        <tr>
+          <th>MAC Address</th>
+          <th>IP Address</th>
+          <th>Hostname</th>
+          <th>Vendor</th>
+          <th>First Seen</th>
+          <th>Last Seen</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for d in devices %}
+      <tr>
+        <td class="mono">{{ d.mac_address }}</td>
+        <td class="mono">{{ d.ip_address or '—' }}</td>
+        <td>{{ d.hostname or '—' }}</td>
+        <td>{{ d.vendor or 'Unknown vendor' }}</td>
+        <td class="mono">{{ d.first_seen[:19] }}</td>
+        <td class="mono">{{ d.last_seen[:19] }}</td>
+        <td><span class="tag tag-{{ d.status }}">{{ d.status }}</span></td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">◈</div>
+      No devices discovered yet. Ensure the hotspot is running and devices are connected.
+    </div>
+    {% endif %}
+  </div>
+</div>
 {% endblock %}

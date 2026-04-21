@@ -2,7 +2,14 @@ from __future__ import annotations
 
 from flask import Flask, jsonify, render_template
 
-from .db import fetch_alerts, fetch_captures, fetch_devices, fetch_whitelist_rules
+from .db import (
+    fetch_alerts,
+    fetch_captures,
+    fetch_devices,
+    fetch_whitelist_rules,
+    fetch_rate_events,
+    fetch_system_logs,
+)
 
 
 def create_app(conn, config: dict) -> Flask:
@@ -17,20 +24,23 @@ def create_app(conn, config: dict) -> Flask:
     @app.route("/")
     def index():
         devices = fetch_devices(conn)
-        alerts = fetch_alerts(conn)[:5]
-        captures = fetch_captures(conn)[:5]
-        rules = fetch_whitelist_rules(conn)[:5]
+        alerts = fetch_alerts(conn)
+        captures = fetch_captures(conn)
+        rules = fetch_whitelist_rules(conn)
+        rate_events = fetch_rate_events(conn)
         return render_template(
             "index.html",
             title=title,
             device_count=len(devices),
-            alert_count=len(fetch_alerts(conn)),
-            capture_count=len(fetch_captures(conn)),
-            rule_count=len(fetch_whitelist_rules(conn)),
-            alerts=alerts,
-            captures=captures,
+            alert_count=len(alerts),
+            capture_count=len(captures),
+            rule_count=len(rules),
+            rate_event_count=len(rate_events),
+            alerts=alerts[:5],
+            captures=captures[:5],
             devices=devices[:5],
-            rules=rules,
+            rules=rules[:5],
+            rate_events=rate_events[:5],
         )
 
     @app.route("/devices")
@@ -49,6 +59,15 @@ def create_app(conn, config: dict) -> Flask:
     def rules_page():
         return render_template("rules.html", title=title, rules=fetch_whitelist_rules(conn))
 
+    @app.route("/rate-events")
+    def rate_events_page():
+        return render_template("rate_events.html", title=title, rate_events=fetch_rate_events(conn))
+
+    @app.route("/logs")
+    def logs_page():
+        return render_template("logs.html", title=title, logs=fetch_system_logs(conn))
+
+    # JSON API endpoints
     @app.route("/api/devices")
     def devices_api():
         return jsonify([dict(row) for row in fetch_devices(conn)])
@@ -64,5 +83,13 @@ def create_app(conn, config: dict) -> Flask:
     @app.route("/api/rules")
     def rules_api():
         return jsonify([dict(row) for row in fetch_whitelist_rules(conn)])
+
+    @app.route("/api/rate-events")
+    def rate_events_api():
+        return jsonify([dict(row) for row in fetch_rate_events(conn)])
+
+    @app.route("/api/logs")
+    def logs_api():
+        return jsonify([dict(row) for row in fetch_system_logs(conn)])
 
     return app

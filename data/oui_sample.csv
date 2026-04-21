@@ -3,3 +3,13 @@ prefix,vendor
 AA:BB:CC,Acme IoT Labs
 D8:3A:DD,Raspberry Pi Foundation
 F4:F2:6D,Amazon Technologies
+08:00:27,Oracle VirtualBox
+52:54:00,QEMU/KVM Virtual NIC
+52:55:0A,QEMU/KVM Virtual NIC
+52:56:00,QEMU/KVM Virtual NIC
+B8:27:EB,Raspberry Pi Foundation
+DC:A6:32,Raspberry Pi Foundation
+E4:5F:01,Raspberry Pi Foundation
+18:FE:34,Espressif (ESP8266/ESP32)
+AC:67:B2,Espressif (ESP8266/ESP32)
+30:AE:A4,Espressif (ESP8266/ESP32)

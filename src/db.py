@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import sqlite3
+from datetime import datetime
 from pathlib import Path
-from typing import Iterable, Optional, Any
+from typing import Optional
 
 
 SCHEMA = """
@@ -216,3 +217,19 @@ def add_rate_event(
     )
     conn.commit()
     return int(cur.lastrowid)
+
+
+def fetch_rate_events(conn: sqlite3.Connection) -> list[sqlite3.Row]:
+    return conn.execute("SELECT * FROM rate_events ORDER BY id DESC").fetchall()
+
+
+def add_system_log(conn: sqlite3.Connection, level: str, message: str) -> None:
+    conn.execute(
+        "INSERT INTO system_logs (level, message, created_at) VALUES (?, ?, ?)",
+        (level, message, datetime.utcnow().isoformat()),
+    )
+    conn.commit()
+
+
+def fetch_system_logs(conn: sqlite3.Connection) -> list[sqlite3.Row]:
+    return conn.execute("SELECT * FROM system_logs ORDER BY id DESC LIMIT 100").fetchall()
