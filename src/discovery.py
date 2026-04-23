@@ -13,7 +13,7 @@ def parse_ip_neigh(output: str) -> list[dict[str, str]]:
     devices: list[dict[str, str]] = []
     for line in output.splitlines():
         parts = line.split()
-        if len(parts) < 5:
+        if len(parts) < 4:
             continue
         ip_address = parts[0]
         try:
