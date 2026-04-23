@@ -1,88 +1,59 @@
-from __future__ import annotations
-
-import os
 import signal
 import subprocess
-from dataclasses import dataclass
+import threading
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 from .db import add_capture, update_capture_end
 
 
-@dataclass
-class CaptureSession:
-    capture_id: int
-    process: subprocess.Popen
-    pcap_path: str
-    start_time: str
-
-
 class PacketCaptureManager:
-    def __init__(self, conn, captures_dir: str, tcpdump_bin: str = "/usr/bin/tcpdump") -> None:
+    def __init__(self, conn, captures_dir, tcpdump_bin="/usr/bin/tcpdump"):
         self.conn = conn
         self.captures_dir = Path(captures_dir)
         self.captures_dir.mkdir(parents=True, exist_ok=True)
         self.tcpdump_bin = tcpdump_bin
-        self.current: Optional[CaptureSession] = None
+        # active sessions keyed by capture_id
+        self.active = {}
 
-    def start(self, interface: str, name_prefix: str = "capture") -> Optional[CaptureSession]:
-        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-        pcap_path = self.captures_dir / f"{name_prefix}_{timestamp}.pcap"
+    def start_capture(self, interface, filename, device_mac=None, duration=None, packet_count=None):
+        # build pcap path — use admin-supplied filename
+        safe = filename.strip().replace(" ", "_") or "capture"
+        if not safe.endswith(".pcap"):
+            safe += ".pcap"
+        pcap_path = self.captures_dir / safe
         start_time = datetime.utcnow().isoformat()
 
-        cmd = [
-            self.tcpdump_bin,
-            "-i", interface,
-            "-w", str(pcap_path),
-        ]
+        cmd = [self.tcpdump_bin, "-i", interface, "-w", str(pcap_path)]
+        if device_mac:
+            cmd += ["ether", "host", device_mac]
+        if packet_count:
+            cmd += ["-c", str(packet_count)]
+
         process = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        capture_id = add_capture(
-            conn=self.conn,
-            device_mac=None,
-            pcap_path=str(pcap_path),
-            start_time=start_time,
-        )
-        session = CaptureSession(
-            capture_id=capture_id,
-            process=process,
-            pcap_path=str(pcap_path),
-            start_time=start_time,
-        )
-        self.current = session
-        return session
+        capture_id = add_capture(self.conn, device_mac, str(pcap_path), start_time)
+        self.active[capture_id] = process
 
-    @staticmethod
-    def _count_packets(pcap_path: str, tcpdump_bin: str) -> int:
-        """Count packets in a PCAP file by reading it back with tcpdump."""
-        try:
-            result = subprocess.run(
-                [tcpdump_bin, "-r", pcap_path, "-nn", "--count"],
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            # tcpdump --count outputs "<N> packets" to stderr
-            for line in (result.stderr + result.stdout).splitlines():
-                parts = line.strip().split()
-                if parts and parts[0].isdigit():
-                    return int(parts[0])
-        except Exception:
-            pass
-        return 0
+        # if duration given, stop automatically after N seconds
+        if duration:
+            def auto_stop():
+                try:
+                    process.wait(timeout=int(duration))
+                except subprocess.TimeoutExpired:
+                    process.send_signal(signal.SIGINT)
+                    process.wait()
+                self._finish(capture_id)
+            threading.Thread(target=auto_stop, daemon=True).start()
 
-    def stop(self) -> None:
-        if not self.current:
-            return
-        session = self.current
-        if session.process.poll() is None:
-            session.process.send_signal(signal.SIGINT)
-            try:
-                session.process.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                session.process.kill()
-        end_time = datetime.utcnow().isoformat()
-        packet_count = self._count_packets(session.pcap_path, self.tcpdump_bin)
-        update_capture_end(self.conn, session.capture_id, end_time=end_time, packet_count=packet_count)
-        self.current = None
+        return capture_id
+
+    def stop_capture(self, capture_id):
+        proc = self.active.get(capture_id)
+        if proc and proc.poll() is None:
+            proc.send_signal(signal.SIGINT)
+            proc.wait()
+        self._finish(capture_id)
+
+    def _finish(self, capture_id):
+        self.active.pop(capture_id, None)
+        update_capture_end(self.conn, capture_id, datetime.utcnow().isoformat(), 0)

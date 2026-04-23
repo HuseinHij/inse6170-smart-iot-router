@@ -1,49 +1,50 @@
 {% extends "layout.html" %}
 {% block content %}
-<div class="page-header">
-  <h1>Whitelist Rules</h1>
-  <span class="page-sub">nftables-enforced per-device access control</span>
+<div class="pg-head">
+  <h2>Firewall Rules</h2>
+  <button class="btn btn-blue" onclick="document.getElementById('add-form').style.display=document.getElementById('add-form').style.display==='none'?'block':'none'">+ Add Rule</button>
 </div>
-<div class="card">
-  <div class="card-header"><h2>Active Rules</h2></div>
-  <div class="table-wrap">
-    {% if rules %}
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Device MAC</th>
-          <th>Allowed Destination</th>
-          <th>Port</th>
-          <th>Protocol</th>
-          <th>Enabled</th>
-        </tr>
-      </thead>
-      <tbody>
-      {% for r in rules %}
-      <tr>
-        <td class="mono">{{ r.id }}</td>
-        <td class="mono">{{ r.device_mac or 'any' }}</td>
-        <td class="mono">{{ r.allowed_dest or 'any' }}</td>
-        <td>{{ r.allowed_port or '—' }}</td>
-        <td>{{ r.protocol or '—' }}</td>
-        <td>
-          {% if r.enabled %}
-          <span class="tag tag-enabled">enabled</span>
-          {% else %}
-          <span class="tag tag-offline">disabled</span>
-          {% endif %}
-        </td>
-      </tr>
-      {% endfor %}
-      </tbody>
-    </table>
-    {% else %}
-    <div class="empty-state">
-      <div class="empty-icon">⛊</div>
-      No whitelist rules defined. All forward traffic is currently accepted.
+
+<div class="panel" id="add-form" style="display:none;margin-bottom:14px">
+  <div class="ph"><h3>New Rule</h3></div>
+  <form method="post" action="/rules/add">
+    <div class="form-area">
+      <div class="field">
+        <label>Device</label>
+        <select name="device_mac">
+          <option value="">Any</option>
+          {% for d in devices %}<option value="{{ d.mac_address }}">{{ d.device_name or d.mac_address }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="field"><label>Destination IP</label><input type="text" name="allowed_dest" placeholder="destination IP"></div>
+      <div class="field" style="width:70px"><label>Port</label><input type="number" name="allowed_port" placeholder="port" min="1" max="65535"></div>
+      <div class="field">
+        <label>Protocol</label>
+        <select name="protocol"><option value="tcp">TCP</option><option value="udp">UDP</option><option value="">Any</option></select>
+      </div>
+      <div class="field" style="flex:1"><label>Description</label><input type="text" name="description" placeholder="description"></div>
+      <div class="field"><label>&nbsp;</label><button type="submit" class="btn btn-blue">Add</button></div>
     </div>
-    {% endif %}
-  </div>
+  </form>
+</div>
+
+<div class="panel">
+  <div class="ph"><h3>Active Rules</h3></div>
+  {% if rules %}<table>
+    <thead><tr><th>#</th><th>Device</th><th>Destination</th><th>Port</th><th>Protocol</th><th>Description</th><th>Enabled</th><th></th></tr></thead>
+    <tbody>
+    {% for r in rules %}<tr>
+      <td>{{ r.id }}</td>
+      <td class="mono">{{ r.device_mac or 'any' }}</td>
+      <td class="mono">{{ r.allowed_dest or 'any' }}</td>
+      <td>{{ r.allowed_port or '—' }}</td>
+      <td>{{ r.protocol or '—' }}</td>
+      <td>{{ r.description or '—' }}</td>
+      <td>{% if r.enabled %}<span class="b b-green">Yes</span>{% else %}<span class="b b-grey">No</span>{% endif %}</td>
+      <td><form method="post" action="/rules/{{ r.id }}/delete" onsubmit="return confirm('Delete?')"><button type="submit" class="btn btn-red btn-sm">Delete</button></form></td>
+    </tr>{% endfor %}
+    </tbody>
+  </table>
+  {% else %}<div class="empty">No rules yet. Click "+ Add Rule" to create one.</div>{% endif %}
 </div>
 {% endblock %}

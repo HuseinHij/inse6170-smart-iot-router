@@ -1,45 +1,21 @@
 {% extends "layout.html" %}
 {% block content %}
-<div class="page-header">
-  <h1>System Logs</h1>
-  <span class="page-sub">Runtime events and startup messages</span>
+<div class="pg-head">
+  <h2>System Logs</h2>
+  <form method="post" action="/logs/clear" onsubmit="return confirm('Clear all logs?')">
+    <button type="submit" class="btn btn-red">Clear</button>
+  </form>
 </div>
-<div class="card">
-  <div class="card-header"><h2>System Logs</h2></div>
-  <div class="table-wrap">
-    {% if logs %}
-    <table>
-      <thead>
-        <tr>
-          <th>Time</th>
-          <th>Level</th>
-          <th>Message</th>
-        </tr>
-      </thead>
-      <tbody>
-      {% for log in logs %}
-      <tr>
-        <td class="mono">{{ log.created_at[:19] }}</td>
-        <td>
-          {% if log.level == 'ERROR' %}
-          <span class="tag tag-error">ERROR</span>
-          {% elif log.level == 'WARNING' %}
-          <span class="tag tag-warn">WARN</span>
-          {% else %}
-          <span class="tag tag-info">INFO</span>
-          {% endif %}
-        </td>
-        <td>{{ log.message }}</td>
-      </tr>
-      {% endfor %}
-      </tbody>
-    </table>
-    {% else %}
-    <div class="empty-state">
-      <div class="empty-icon">≡</div>
-      No system logs yet.
-    </div>
-    {% endif %}
-  </div>
+<div class="panel">
+  <div class="panel-head"><h3>Last 200 entries</h3></div>
+  {% if logs %}<table><thead><tr><th>Time</th><th>Level</th><th>Message</th></tr></thead><tbody>
+  {% for l in logs %}<tr>
+    <td class="mono">{{ l.created_at[:19] }}</td>
+    <td>{% if l.level == 'INFO' %}<span class="b b-blue">INFO</span>
+        {% elif l.level == 'WARNING' %}<span class="b b-orange">WARN</span>
+        {% else %}<span class="b b-red">{{ l.level }}</span>{% endif %}</td>
+    <td>{{ l.message }}</td>
+  </tr>{% endfor %}
+  </tbody></table>{% else %}<div class="empty">No logs.</div>{% endif %}
 </div>
 {% endblock %}

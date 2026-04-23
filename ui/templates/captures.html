@@ -1,43 +1,52 @@
 {% extends "layout.html" %}
 {% block content %}
-<div class="page-header">
-  <h1>Packet Captures</h1>
-  <span class="page-sub">PCAP files recorded by tcpdump</span>
-</div>
-<div class="card">
-  <div class="card-header"><h2>Capture Sessions</h2></div>
-  <div class="table-wrap">
-    {% if captures %}
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>PCAP File</th>
-          <th>Device MAC</th>
-          <th>Start Time</th>
-          <th>End Time</th>
-          <th>Packets</th>
-        </tr>
-      </thead>
-      <tbody>
-      {% for c in captures %}
-      <tr>
-        <td class="mono">{{ c.id }}</td>
-        <td class="mono" title="{{ c.pcap_path }}">{{ c.pcap_path.split('/')[-1] }}</td>
-        <td class="mono">{{ c.device_mac or 'all' }}</td>
-        <td class="mono">{{ c.start_time[:19] }}</td>
-        <td class="mono">{{ c.end_time[:19] if c.end_time else '—' }}</td>
-        <td>{{ c.packet_count }}</td>
-      </tr>
-      {% endfor %}
-      </tbody>
-    </table>
-    {% else %}
-    <div class="empty-state">
-      <div class="empty-icon">⏺</div>
-      No captures recorded. Enable capture in app.yaml and restart.
+<h2>Packet Captures</h2>
+<div class="panel">
+  <div class="ph"><h3>Start New Capture</h3></div>
+  <form method="post" action="/captures/start">
+    <div class="form-area">
+      <div class="field">
+        <label>Device</label>
+        <select name="device_mac">
+          <option value="">All devices</option>
+          {% for d in devices %}<option value="{{ d.mac_address }}">{{ d.device_name or d.mac_address }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="field" style="flex:1"><label>Filename</label><input type="text" name="filename" placeholder="filename" required></div>
+      <div class="field" style="width:85px"><label>Duration (s)</label><input type="number" name="duration" placeholder="30" min="1"></div>
+      <div class="field" style="width:95px"><label>Packet count</label><input type="number" name="packet_count" placeholder="100" min="1"></div>
+      <div class="field"><label>&nbsp;</label><button type="submit" class="btn btn-blue">Start</button></div>
     </div>
-    {% endif %}
+    <div class="hint">Set duration or packet count. Leave both empty to run until stopped manually.</div>
+  </form>
+</div>
+<div class="panel">
+  <div class="ph">
+    <h3>Capture Sessions</h3>
+    <form method="post" action="/captures/delete-all" onsubmit="return confirm('Delete all captures?')">
+      <button type="submit" class="btn btn-red btn-sm">Delete All</button>
+    </form>
   </div>
+  {% if captures %}<table>
+    <thead><tr><th>#</th><th>File</th><th>Device</th><th>Start</th><th>End</th><th>Packets</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+    {% for c in captures %}<tr>
+      <td>{{ c.id }}</td>
+      <td class="mono" title="{{ c.pcap_path }}">{{ c.pcap_path.split('/')[-1] }}</td>
+      <td class="mono">{{ c.device_mac or 'all' }}</td>
+      <td class="mono">{{ c.start_time[:19] }}</td>
+      <td class="mono">{{ c.end_time[:19] if c.end_time else '—' }}</td>
+      <td>{{ c.packet_count }}</td>
+      <td>{% if c.id in active_ids %}<span class="b b-blue">running</span>{% else %}<span class="b b-grey">done</span>{% endif %}</td>
+      <td style="display:flex;gap:5px">
+        {% if c.id in active_ids %}
+        <form method="post" action="/captures/{{ c.id }}/stop"><button type="submit" class="btn btn-grey btn-sm">Stop</button></form>
+        {% endif %}
+        <form method="post" action="/captures/{{ c.id }}/delete" onsubmit="return confirm('Delete?')"><button type="submit" class="btn btn-red btn-sm">Delete</button></form>
+      </td>
+    </tr>{% endfor %}
+    </tbody>
+  </table>
+  {% else %}<div class="empty">No captures yet.</div>{% endif %}
 </div>
 {% endblock %}

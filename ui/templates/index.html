@@ -1,137 +1,42 @@
 {% extends "layout.html" %}
 {% block content %}
-
-<div class="page-header">
-  <h1>Dashboard</h1>
-  <span class="page-sub">System overview · real-time</span>
+<div class="welcome">
+  <div class="welcome-title">Smart IoT Router — Admin Panel</div>
+  <div class="welcome-sub">INSE 6170 Network Security &mdash; Hussein Hijazi</div>
 </div>
 
-<div class="stats-row">
-  <div class="stat-card s-cyan">
-    <div class="stat-label">Devices</div>
-    <div class="stat-value c-cyan">{{ device_count }}</div>
-  </div>
-  <div class="stat-card s-danger">
-    <div class="stat-label">Alerts</div>
-    <div class="stat-value c-danger">{{ alert_count }}</div>
-  </div>
-  <div class="stat-card s-green">
-    <div class="stat-label">Captures</div>
-    <div class="stat-value c-green">{{ capture_count }}</div>
-  </div>
-  <div class="stat-card s-warn">
-    <div class="stat-label">Whitelist Rules</div>
-    <div class="stat-value c-warn">{{ rule_count }}</div>
-  </div>
-  <div class="stat-card s-cyan">
-    <div class="stat-label">Throttle Events</div>
-    <div class="stat-value c-cyan">{{ rate_event_count }}</div>
-  </div>
+<div class="summary">
+  <a href="/devices" class="sbox"><div class="num">{{ device_count }}</div><div class="lbl">Devices</div></a>
+  <a href="/alerts" class="sbox"><div class="num">{{ alert_count }}</div><div class="lbl">Alerts</div></a>
+  <a href="/captures" class="sbox"><div class="num">{{ capture_count }}</div><div class="lbl">Captures</div></a>
+  <a href="/rules" class="sbox"><div class="num">{{ rule_count }}</div><div class="lbl">FW Rules</div></a>
 </div>
 
-<div class="grid-2">
-
-  <div class="card">
-    <div class="card-header">
-      <h2>Latest Alerts</h2>
-      <a href="/alerts">view all →</a>
-    </div>
-    <div class="table-wrap">
-      {% if alerts %}
-      <table>
-        <thead><tr><th>Time</th><th>Severity</th><th>Message</th></tr></thead>
-        <tbody>
-        {% for a in alerts %}
-        <tr>
-          <td class="mono">{{ a.created_at[:19] }}</td>
-          <td><span class="tag tag-{{ a.severity }}">{{ a.severity }}</span></td>
-          <td title="{{ a.message }}">{{ a.message }}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <div class="empty-state"><div class="empty-icon">✓</div>No alerts recorded</div>
-      {% endif %}
-    </div>
+<div class="feature-grid">
+  <div class="fcard">
+    <div class="fcard-title">Device Discovery</div>
+    <div class="fcard-body">Lists all IoT devices connected through the hotspot. Shows IP, MAC, vendor, and custom labels set by the admin.</div>
+    <a href="/devices" class="fcard-link">Go to Devices &rarr;</a>
   </div>
-
-  <div class="card">
-    <div class="card-header">
-      <h2>Recent Devices</h2>
-      <a href="/devices">view all →</a>
-    </div>
-    <div class="table-wrap">
-      {% if devices %}
-      <table>
-        <thead><tr><th>MAC</th><th>IP</th><th>Vendor</th><th>Status</th></tr></thead>
-        <tbody>
-        {% for d in devices %}
-        <tr>
-          <td class="mono">{{ d.mac_address }}</td>
-          <td class="mono">{{ d.ip_address or '—' }}</td>
-          <td>{{ d.vendor or 'Unknown' }}</td>
-          <td><span class="tag tag-{{ d.status }}">{{ d.status }}</span></td>
-        </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <div class="empty-state"><div class="empty-icon">◈</div>No devices discovered yet</div>
-      {% endif %}
-    </div>
+  <div class="fcard">
+    <div class="fcard-title">Packet Capture</div>
+    <div class="fcard-body">Capture network traffic per device with a custom filename, duration, or packet limit. Files are saved as PCAP for offline analysis.</div>
+    <a href="/captures" class="fcard-link">Go to Captures &rarr;</a>
   </div>
-
-  <div class="card">
-    <div class="card-header">
-      <h2>Recent Captures</h2>
-      <a href="/captures">view all →</a>
-    </div>
-    <div class="table-wrap">
-      {% if captures %}
-      <table>
-        <thead><tr><th>File</th><th>Start</th><th>Packets</th></tr></thead>
-        <tbody>
-        {% for c in captures %}
-        <tr>
-          <td class="mono" title="{{ c.pcap_path }}">{{ c.pcap_path.split('/')[-1] }}</td>
-          <td class="mono">{{ c.start_time[:19] }}</td>
-          <td>{{ c.packet_count }}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <div class="empty-state"><div class="empty-icon">⏺</div>No captures recorded</div>
-      {% endif %}
-    </div>
+  <div class="fcard">
+    <div class="fcard-title">Whitelist Firewall</div>
+    <div class="fcard-body">Define which traffic each device is allowed to send. Any connection not in the whitelist is dropped by the kernel using nftables.</div>
+    <a href="/rules" class="fcard-link">Go to Firewall &rarr;</a>
   </div>
-
-  <div class="card">
-    <div class="card-header">
-      <h2>Rate / Throttle Events</h2>
-      <a href="/rate-events">view all →</a>
-    </div>
-    <div class="table-wrap">
-      {% if rate_events %}
-      <table>
-        <thead><tr><th>Device</th><th>B/s</th><th>Pkt/s</th><th>Action</th></tr></thead>
-        <tbody>
-        {% for r in rate_events %}
-        <tr>
-          <td class="mono">{{ r.device_mac or '—' }}</td>
-          <td>{{ r.bytes_per_sec }}</td>
-          <td>{{ r.packets_per_sec }}</td>
-          <td>{{ r.action_taken }}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <div class="empty-state"><div class="empty-icon">⚡</div>No throttle events yet</div>
-      {% endif %}
-    </div>
+  <div class="fcard">
+    <div class="fcard-title">IPS</div>
+    <div class="fcard-body">Monitors traffic every 20 seconds. Devices exceeding the data rate threshold are throttled and an alert is logged automatically.</div>
+    <a href="/alerts" class="fcard-link">View Alerts &rarr;</a>
   </div>
-
+  <div class="fcard">
+    <div class="fcard-title">Rate History</div>
+    <div class="fcard-body">View a traffic rate graph per device over a configurable number of days. Outdated records are removed automatically.</div>
+    <a href="/history" class="fcard-link">Go to History &rarr;</a>
+  </div>
 </div>
 {% endblock %}

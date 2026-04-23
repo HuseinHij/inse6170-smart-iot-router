@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="pg-head">
+  <h2>Edit Device</h2>
+  <a href="/devices" class="btn btn-grey">Back</a>
+</div>
+<div class="panel" style="max-width:680px">
+  <div class="ph"><h3>{{ device.mac_address }} &mdash; {{ device.vendor or 'Unknown vendor' }}</h3></div>
+  <div style="padding:20px">
+    <form method="post">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+        <div class="field"><label>Name</label><input type="text" name="device_name" value="{{ device.device_name or '' }}" placeholder="device name"></div>
+        <div class="field"><label>Model</label><input type="text" name="model" value="{{ device.model or '' }}" placeholder="model"></div>
+        <div class="field"><label>Version</label><input type="text" name="version" value="{{ device.version or '' }}" placeholder="firmware version"></div>
+      </div>
+      <div class="field" style="margin-bottom:12px"><label>Description</label><textarea name="description" style="width:100%;min-height:65px" placeholder="what does this device do">{{ device.description or '' }}</textarea></div>
+      <div class="field" style="margin-bottom:16px"><label>Notes</label><textarea name="notes" style="width:100%;min-height:55px" placeholder="other notes">{{ device.notes or '' }}</textarea></div>
+      <div style="display:flex;gap:8px">
+        <button type="submit" class="btn btn-blue">Save</button>
+        <a href="/devices" class="btn btn-grey">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

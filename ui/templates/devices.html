@@ -1,45 +1,25 @@
 {% extends "layout.html" %}
 {% block content %}
-<div class="page-header">
-  <h1>Device Inventory</h1>
-  <span class="page-sub">All discovered IoT devices</span>
-</div>
-<div class="card">
-  <div class="card-header"><h2>Connected Devices</h2></div>
-  <div class="table-wrap">
-    {% if devices %}
-    <table>
-      <thead>
-        <tr>
-          <th>MAC Address</th>
-          <th>IP Address</th>
-          <th>Hostname</th>
-          <th>Vendor</th>
-          <th>First Seen</th>
-          <th>Last Seen</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-      {% for d in devices %}
-      <tr>
-        <td class="mono">{{ d.mac_address }}</td>
-        <td class="mono">{{ d.ip_address or '—' }}</td>
-        <td>{{ d.hostname or '—' }}</td>
-        <td>{{ d.vendor or 'Unknown vendor' }}</td>
-        <td class="mono">{{ d.first_seen[:19] }}</td>
-        <td class="mono">{{ d.last_seen[:19] }}</td>
-        <td><span class="tag tag-{{ d.status }}">{{ d.status }}</span></td>
-      </tr>
-      {% endfor %}
-      </tbody>
-    </table>
-    {% else %}
-    <div class="empty-state">
-      <div class="empty-icon">◈</div>
-      No devices discovered yet. Ensure the hotspot is running and devices are connected.
-    </div>
-    {% endif %}
-  </div>
+<h2>Devices</h2>
+<div class="panel" style="overflow-x:auto">
+  <div class="ph"><h3>Device Inventory</h3></div>
+  {% if devices %}
+  <table>
+    <thead><tr><th>MAC</th><th>IP</th><th>Hostname</th><th>Vendor</th><th>Name</th><th>Model</th><th>Last Seen</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+    {% for d in devices %}<tr>
+      <td class="mono">{{ d.mac_address }}</td>
+      <td class="mono">{{ d.ip_address or '—' }}</td>
+      <td>{{ d.hostname or '—' }}</td>
+      <td>{{ d.vendor or 'Unknown' }}</td>
+      <td>{{ d.device_name or '—' }}</td>
+      <td>{{ d.model or '—' }}</td>
+      <td class="mono">{{ d.last_seen[:19] }}</td>
+      <td><span class="b b-green">{{ d.status }}</span></td>
+      <td><a href="/devices/{{ d.id }}/edit" class="btn btn-grey btn-sm">Edit</a></td>
+    </tr>{% endfor %}
+    </tbody>
+  </table>
+  {% else %}<div class="empty">No devices found.</div>{% endif %}
 </div>
 {% endblock %}
